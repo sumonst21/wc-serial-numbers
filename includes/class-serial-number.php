@@ -268,24 +268,96 @@ class Serial_Number {
 	}
 
 
-	public static function query( $args ) {
+	public static function query( $args, $count = false ) {
+		global $wpdb;
+		$query_where    = '';
+		$query_orderby  = '';
+		$query_limit    = '';
+
+
 		$default = array(
 			'include'      => array(),
 			'exclude'      => array(),
 			'status'       => 'all',
-			'order_id'     => '',
-			'product_id'   => '',
-			'variation_id' => '',
+			'order_id'     => array(),
+			'product_id'   => array(),
+			'variation_id' => array(),
 			'orderby'      => 'id',
 			'order'        => 'DESC',
 			'per_page'     => 20,
-			'page'         => 1,
+			'page'     => 1,
 			'offset'       => 0,
 		);
+		//sn_serial
+		$args = wp_parse_args( $args, $default );
 
+		$query_where = " WHERE 1=1  AND post_type='sn_serial' ";
 
+		//include
+		if ( ! empty( $args['include'] ) ) {
+			$include     = implode( ',', wp_parse_id_list( $args['include'] ) );
+			$query_where .= " AND p.id IN ( $include ) ";
+		}
 
+		//exclude
+		if ( ! empty( $args['exclude'] ) ) {
+			$exclude     = implode( ',', wp_parse_id_list( $args['exclude'] ) );
+			$query_where .= " AND p.id NOT IN ( $exclude ) ";
+		}
 
+		//product_id
+		if ( ! empty( $args['product_id'] ) ) {
+			$product_id     = implode( ',', wp_parse_id_list( $args['product_id'] ) );
+			$query_where .= " AND m.product_id NOT IN ( $product_id ) ";
+		}
+
+		//variation_id
+		if ( ! empty( $args['variation_id'] ) ) {
+			$variation_id     = implode( ',', wp_parse_id_list( $args['variation_id'] ) );
+			$query_where .= " AND m.variation_id NOT IN ( $variation_id ) ";
+		}
+
+		//order_id
+		if ( ! empty( $args['order_id'] ) ) {
+			$order_id     = implode( ',', wp_parse_id_list( $args['order_id'] ) );
+			$query_where .= " AND m.order_id NOT IN ( $order_id ) ";
+		}
+
+		//ordering
+		$order         = isset( $args['order'] ) ? esc_sql( strtoupper( $args['order'] ) ) : 'ASC';
+		$order_by      = esc_sql( $args['orderby'] );
+		$query_orderby = sprintf( " ORDER BY %s %s ", $order_by, $order );
+
+		// limit
+		if ( isset( $args['per_page'] ) && $args['per_page'] > 0 ) {
+			if ( $args['offset'] ) {
+				$query_limit = $wpdb->prepare( 'LIMIT %d, %d', $args['offset'], $args['per_page'] );
+			} else {
+				$query_limit = $wpdb->prepare( 'LIMIT %d, %d', $args['per_page'] * ( $args['page'] - 1 ), $args['per_page'] );
+			}
+		}
+
+		$cache_key     = md5( serialize( $args ) );
+		$query_results = wp_cache_get( $cache_key );
+		$results = array();
+		if ( false === $query_results ) {
+			$request = "select id, post_password serial, post_status status, post_date created,  m.* from wp_posts p
+			left outer join(
+			  select post_id ,
+			     max(case when meta_key = '_product_id' then meta_value else null end) as product_id,
+			     max(case when meta_key = '_variation_id' then meta_value else null end) as variation_id,
+			     max(case when meta_key = '_activation_limit' then meta_value else null end) as activation_limit,
+			     max(case when meta_key = '_activation_email' then meta_value else null end) as activation_email,
+			     max(case when meta_key = '_validity' then meta_value else null end) as validity, 
+			     max(case when meta_key = '_expire_date' then meta_value else null end) as expire_date,
+			     max(case when meta_key = '_order_date' then meta_value else null end) as order_date 
+			     from wp_postmeta pm group by 1
+			) m on m.post_id = p.id $query_where $query_orderby $query_limit";
+
+			$results = $wpdb->get_results( $request );
+		}
+
+		return $results;
 	}
 
 
