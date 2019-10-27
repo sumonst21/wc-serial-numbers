@@ -18,13 +18,14 @@ class Serial_Number {
 	public function __construct( $serial_number ) {
 		$default = array(
 			'id'               => null,
-			'serial_key'       => '',
-			'serial_image'     => '',
-			'product_id'       => '',
-			'activation_limit' => '1',
-			'order_id'         => '',
-			'activation_email' => '',
+			'serial'           => '',
 			'status'           => 'new',
+			'image_url'        => '',
+			'product_id'       => '',
+			'variation_id'     => '',
+			'order_id'         => '',
+			'activation_limit' => '1',
+			'activation_email' => '',
 			'validity'         => '365',
 			'expire_date'      => '0000-00-00 00:00:00',
 			'order_date'       => '0000-00-00 00:00:00',
@@ -36,8 +37,8 @@ class Serial_Number {
 		} elseif ( is_array( $serial_number ) ) {
 			$this->props = array_merge( $default, $serial_number );
 		} elseif ( is_numeric( $serial_number ) ) {
-			$serial      = $this->pull( $serial_number );
-			$this->props = $serial ? array_merge( $default, $serial ) : $default;
+			$serial      = $this->get( $serial_number );
+			$this->props = is_object( $serial ) ? array_merge( $default, (array) $serial ) : $default;
 		} else {
 			$this->props = $default;
 		}
@@ -45,85 +46,35 @@ class Serial_Number {
 	}
 
 	/**
+	 * Set prop
 	 *
-	 * @param $id
+	 * @param $key
+	 * @param $value
 	 *
-	 * @return array
 	 * @since 1.0.0
 	 */
-	protected function pull( $id ) {
-		global $wpdb;
-		$serial = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}wcsn_serial_numbers WHERE id=%d", absint( $id ) ), ARRAY_A );
-		if ( $this->is_encrypted( $serial['serial_key'] ) ) {
-			$serial['serial_key'] = $this->decrypt( $serial['serial_key'] );
+	public function set_prop( $key, $value ) {
+		if ( array_key_exists( $key, $this->props ) ) {
+			$this->props[ $key ] = $value;
+		}
+	}
+
+
+	/**
+	 * @param $key
+	 * @param $value
+	 *
+	 * @return null|string|int
+	 * @since 1.0.0
+	 */
+	public function get_prop( $key, $value ) {
+		if ( array_key_exists( $key, $this->props ) ) {
+			$this->props[ $key ] = $value;
 		}
 
-		return $serial;
+		return null;
 	}
 
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_key() {
-		return $this->props['serial_key'];
-	}
-
-	/**
-	 * @return int
-	 * @since 1.0.0
-	 */
-	public function get_product_id() {
-		return $this->props['product_id'];
-	}
-
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_activation_limit() {
-		return $this->props['activation_limit'];
-	}
-
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_order_id() {
-		return $this->props['order_id'];
-	}
-
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_activation_email() {
-		return $this->props['activation_email'];
-	}
-
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_status() {
-		return $this->props['status'];
-	}
-
-	/**
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function get_validity() {
-		return $this->props['validity'];
-	}
-
-	/**
-	 * @return mixed
-	 * @since 1.0.0
-	 */
-	public function get_expire_date() {
-		return $this->props['expire_date'];
-	}
 
 	/**
 	 * Checks whether a key is encrypted or not
@@ -171,33 +122,6 @@ class Serial_Number {
 		return $string;
 	}
 
-	/**
-	 * Set prop
-	 *
-	 * @param $key
-	 * @param $value
-	 *
-	 * @since 1.0.0
-	 */
-	public function set_prop( $key, $value ) {
-		if ( array_key_exists( $key, $this->props ) ) {
-			if ( 'serial_key' == $key ) {
-				$this->set_key( $value );
-			}
-			$this->props[ $key ] = $value;
-		}
-	}
-
-	/**
-	 * Set key
-	 *
-	 * @param $key
-	 *
-	 * @since 1.0.0
-	 */
-	public function set_key( $key ) {
-		$this->props['serial_key'] = $this->encrypt( $key );
-	}
 
 	/**
 	 * Update change
@@ -267,6 +191,100 @@ class Serial_Number {
 		return $this->save();
 	}
 
+	/**
+	 * Create serial number
+	 * @since 1.0.0
+	 * @param $args
+	 *
+	 * @return array|bool|null
+	 */
+	public static function create( $args ) {
+		$update = false;
+		$id     = null;
+		$data   = (array) apply_filters( 'serial_numbers_insert_serial', $args );
+
+		if ( isset( $args['id'] ) && ! empty( trim( $args['id'] ) ) ) {
+			$id             = (int) $args['id'];
+			$update         = true;
+			$contact_before = (array) sn_get_serial_number( $id );
+			if ( is_null( $contact_before ) ) {
+				return false;
+			}
+
+			$data = array_merge( $contact_before, $data );
+		}
+
+		$serial_number    = isset( $data['serial'] ) ? sanitize_text_field( $data['serial'] ) : null;
+		$status           = ! empty( $data['status'] ) ? sanitize_key( $data['status'] ) : 'new';
+		$order_id         = isset( $data['order_id'] ) ? absint( $data['order_id'] ) : null;
+		$product_id       = isset( $data['product_id'] ) ? absint( $data['product_id'] ) : null;
+		$variation_id     = isset( $data['variation_id'] ) ? absint( $data['variation_id'] ) : null;
+		$activation_limit = ! empty( $data['activation_limit'] ) ? absint( $data['activation_limit'] ) : 1;
+		$activation_email = isset( $data['activation_email'] ) ? sanitize_email( $data['activation_email'] ) : null;
+		$validity         = ! empty( $data['validity'] ) ? absint( $data['validity'] ) : '365';
+		$expire_date      = isset( $data['expire_date'] ) ? sanitize_text_field( $data['expire_date'] ) : '0000-00-00 00:00:00';
+		$order_date       = isset( $data['order_date'] ) ? sanitize_text_field( $data['order_date'] ) : '0000-00-00 00:00:00';
+		$date_created     = ! empty( $data['date_created'] ) ? sanitize_text_field( $data['date_created'] ) : date( 'Y-m-d H:i:s' );
+
+		if ( $order_date !== '0000-00-00 00:00:00' && $expire_date === '0000-00-00 00:00:00' && ! empty( $validity ) ) {
+			$expire_date = date( 'Y-m-d H:i:s', strtotime( sprintf( "+%d days ", $validity ) . $order_date ) );
+		}
+
+		$post_id = wp_insert_post( array(
+			'ID'            => $id,
+			'post_type'     => 'sn_serial',
+			'post_password' => $serial_number,
+			'post_status'   => $status,
+			'post_parent'   => $order_id,
+			'post_date'     => $date_created,
+			'meta_input'    => array(
+				'_product_id'       => $product_id,
+				'_variation_id'     => $variation_id,
+				'_activation_limit' => $activation_limit,
+				'_activation_email' => $activation_email,
+				'_validity'         => $validity,
+				'_expire_date'      => $expire_date,
+				'_order_date'       => $order_date,
+			)
+		) );
+
+		if ( is_wp_error( $post_id ) ) {
+			return false;
+		}
+
+		return self::get( $post_id );
+	}
+
+	/**
+	 * Get serial numbers
+	 *
+	 * @param $id
+	 *
+	 * @return array|null
+	 * @since 1.1.1
+	 */
+	public static function get( $id ) {
+		global $wpdb;
+		$serial = $wpdb->get_row( $wpdb->prepare( "select id, post_password serial, post_status status, post_date created,  m.* from wp_posts p
+			left outer join(
+			  select post_id ,
+			     max(case when meta_key = '_product_id' then meta_value else null end) as product_id,
+			     max(case when meta_key = '_variation_id' then meta_value else null end) as variation_id,
+			     max(case when meta_key = '_activation_limit' then meta_value else null end) as activation_limit,
+			     max(case when meta_key = '_activation_email' then meta_value else null end) as activation_email,
+			     max(case when meta_key = '_validity' then meta_value else null end) as validity, 
+			     max(case when meta_key = '_expire_date' then meta_value else null end) as expire_date,
+			     max(case when meta_key = '_order_date' then meta_value else null end) as order_date 
+			     from wp_postmeta pm group by 1
+			) m on m.post_id = p.id where post_type='sn_serial' AND p.id=%d", $id ) );
+
+		if ( isset( $serial->post_id ) ) {
+			unset( $serial->post_id );
+		}
+
+		return apply_filters( 'serial_numbers_get_serial_number', $serial );
+	}
+
 
 	public static function query( $args ) {
 		$default = array(
@@ -282,8 +300,6 @@ class Serial_Number {
 			'page'         => 1,
 			'offset'       => 0,
 		);
-
-
 
 
 	}
