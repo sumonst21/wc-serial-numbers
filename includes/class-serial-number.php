@@ -268,7 +268,23 @@ class Serial_Number {
 	}
 
 
-	public static function query($args){
+	public static function query( $args ) {
+		$default = array(
+			'include'      => array(),
+			'exclude'      => array(),
+			'status'       => 'all',
+			'order_id'     => '',
+			'product_id'   => '',
+			'variation_id' => '',
+			'orderby'      => 'id',
+			'order'        => 'DESC',
+			'per_page'     => 20,
+			'page'         => 1,
+			'offset'       => 0,
+		);
+
+
+
 
 	}
 
