@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Serial_Number {
+class Serial_Number{
 	/**
 	 * @var array
 	 */
@@ -24,9 +24,10 @@ class Serial_Number {
 			'product_id'       => '',
 			'variation_id'     => '',
 			'order_id'         => '',
+			'customer_id'      => '',
 			'activation_limit' => '1',
 			'activation_email' => '',
-			'validity'         => '365',
+			'validity'         => '0',
 			'expire_date'      => '0000-00-00 00:00:00',
 			'order_date'       => '0000-00-00 00:00:00',
 			'created'          => date( 'Y-m-d H:i:s' ),
@@ -51,7 +52,7 @@ class Serial_Number {
 	 * @param $key
 	 * @param $value
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function set_prop( $key, $value ) {
 		if ( array_key_exists( $key, $this->props ) ) {
@@ -65,7 +66,7 @@ class Serial_Number {
 	 * @param $value
 	 *
 	 * @return null|string|int
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function get_prop( $key, $value ) {
 		if ( array_key_exists( $key, $this->props ) ) {
@@ -82,7 +83,7 @@ class Serial_Number {
 	 * @param $key
 	 *
 	 * @return bool
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	protected function is_encrypted( $key ) {
 		if ( preg_match( '/^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{4})$/', $key ) ) {
@@ -98,7 +99,7 @@ class Serial_Number {
 	 * @param $key
 	 *
 	 * @return string
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function encrypt( $key ) {
 		$p_key = wcsn_get_encrypt_key();
@@ -113,7 +114,7 @@ class Serial_Number {
 	 * @param $key
 	 *
 	 * @return string
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function decrypt( $key ) {
 		$p_key  = wcsn_get_encrypt_key();
@@ -127,36 +128,17 @@ class Serial_Number {
 	 * Update change
 	 *
 	 * @return WP_Error|boolean
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function save() {
-		global $wpdb;
-		$table = "{$wpdb->prefix}wcsn_serial_numbers";
-		$props = apply_filters( 'wc_serial_number_insert_key', $this->props );
-		$where = array( 'id' => $props['id'] );
-		if ( empty( $props['serial_key'] ) ) {
-			return new WP_Error( 'missing_serial_number', __( 'Serial number is not set', 'wc-serial-numbers' ) );
-		}
-		$props['serial_key'] = $this->encrypt( $props['serial_key'] );
-
-		if ( ! empty( $this->props['id'] ) ) {
-			$wpdb->update( $table, $props, $where );
-			do_action( 'wc_serial_number_update_key', $props );
-
-			return true;
-		}
-
-		$wpdb->insert( $table, $props );
-		do_action( 'wc_serial_number_insert_key', $props );
-
-		return true;
+		return self::create( $this->props );
 	}
 
 	/**
 	 * @param $order_id
 	 *
 	 * @return WP_Error|boolean
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function assign_order( $order_id ) {
 		$order = wc_get_order( $order_id );
@@ -176,7 +158,7 @@ class Serial_Number {
 	 * @param bool $reuse
 	 *
 	 * @return bool|WP_Error
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function revoke( $reuse = true ) {
 		if ( $reuse ) {
@@ -193,10 +175,11 @@ class Serial_Number {
 
 	/**
 	 * Create serial number
-	 * @since 1.0.0
+	 *
 	 * @param $args
 	 *
-	 * @return array|bool|null
+	 * @return object|WP_Error
+	 * @since 1.1.0
 	 */
 	public static function create( $args ) {
 		$update = false;
@@ -206,9 +189,9 @@ class Serial_Number {
 		if ( isset( $args['id'] ) && ! empty( trim( $args['id'] ) ) ) {
 			$id             = (int) $args['id'];
 			$update         = true;
-			$contact_before = (array) sn_get_serial_number( $id );
+			$contact_before = (array) self::get($id);
 			if ( is_null( $contact_before ) ) {
-				return false;
+				return new WP_Error( 'invalid_action', __( 'Could not find the serial number to update', 'wc-serial-numbers' ) );
 			}
 
 			$data = array_merge( $contact_before, $data );
@@ -230,6 +213,14 @@ class Serial_Number {
 			$expire_date = date( 'Y-m-d H:i:s', strtotime( sprintf( "+%d days ", $validity ) . $order_date ) );
 		}
 
+		if ( empty( $props['serial'] ) ) {
+			return new WP_Error( 'missing_serial_number', __( 'Serial number is not set', 'wc-serial-numbers' ) );
+		}
+
+		if ( empty( $props['product_id'] ) ) {
+			return new WP_Error( 'missing_product_id', __( 'Product id is missing', 'wc-serial-numbers' ) );
+		}
+
 		$post_id = wp_insert_post( array(
 			'ID'            => $id,
 			'post_type'     => 'sn_serial',
@@ -249,10 +240,12 @@ class Serial_Number {
 		) );
 
 		if ( is_wp_error( $post_id ) ) {
-			return false;
+			return $post_id;
 		}
 
-		return self::get( $post_id );
+
+
+		return (object) self::get( $post_id );
 	}
 
 	/**
@@ -286,21 +279,103 @@ class Serial_Number {
 	}
 
 
-	public static function query( $args ) {
+	/**
+	 * @param $args
+	 * @param bool $count
+	 *
+	 * @return array|object|null
+	 * @since 1.1.0
+	 */
+	public static function query( $args, $count = false ) {
+		global $wpdb;
+		$query_where   = '';
+		$query_orderby = '';
+		$query_limit   = '';
+
+
 		$default = array(
 			'include'      => array(),
 			'exclude'      => array(),
 			'status'       => 'all',
-			'order_id'     => '',
-			'product_id'   => '',
-			'variation_id' => '',
+			'order_id'     => array(),
+			'product_id'   => array(),
+			'variation_id' => array(),
 			'orderby'      => 'id',
 			'order'        => 'DESC',
 			'per_page'     => 20,
 			'page'         => 1,
 			'offset'       => 0,
 		);
+		//sn_serial
+		$args = wp_parse_args( $args, $default );
 
+		$query_where = " WHERE 1=1  AND post_type='sn_serial' ";
+
+		//include
+		if ( ! empty( $args['include'] ) ) {
+			$include     = implode( ',', wp_parse_id_list( $args['include'] ) );
+			$query_where .= " AND p.id IN ( $include ) ";
+		}
+
+		//exclude
+		if ( ! empty( $args['exclude'] ) ) {
+			$exclude     = implode( ',', wp_parse_id_list( $args['exclude'] ) );
+			$query_where .= " AND p.id NOT IN ( $exclude ) ";
+		}
+
+		//product_id
+		if ( ! empty( $args['product_id'] ) ) {
+			$product_id  = implode( ',', wp_parse_id_list( $args['product_id'] ) );
+			$query_where .= " AND m.product_id NOT IN ( $product_id ) ";
+		}
+
+		//variation_id
+		if ( ! empty( $args['variation_id'] ) ) {
+			$variation_id = implode( ',', wp_parse_id_list( $args['variation_id'] ) );
+			$query_where  .= " AND m.variation_id NOT IN ( $variation_id ) ";
+		}
+
+		//order_id
+		if ( ! empty( $args['order_id'] ) ) {
+			$order_id    = implode( ',', wp_parse_id_list( $args['order_id'] ) );
+			$query_where .= " AND m.order_id NOT IN ( $order_id ) ";
+		}
+
+		//ordering
+		$order         = isset( $args['order'] ) ? esc_sql( strtoupper( $args['order'] ) ) : 'ASC';
+		$order_by      = esc_sql( $args['orderby'] );
+		$query_orderby = sprintf( " ORDER BY %s %s ", $order_by, $order );
+
+		// limit
+		if ( isset( $args['per_page'] ) && $args['per_page'] > 0 ) {
+			if ( $args['offset'] ) {
+				$query_limit = $wpdb->prepare( 'LIMIT %d, %d', $args['offset'], $args['per_page'] );
+			} else {
+				$query_limit = $wpdb->prepare( 'LIMIT %d, %d', $args['per_page'] * ( $args['page'] - 1 ), $args['per_page'] );
+			}
+		}
+
+		$cache_key     = md5( serialize( $args ) );
+		$query_results = wp_cache_get( $cache_key );
+		$results       = array();
+		if ( false === $query_results ) {
+			$request = "select id, post_password serial, post_status status, post_date created,  m.* from wp_posts p
+			left outer join( 
+			  select post_id ,
+			     max(case when meta_key = '_product_id' then meta_value else null end) as product_id,
+			     max(case when meta_key = '_variation_id' then meta_value else null end) as variation_id,
+			     max(case when meta_key = '_activation_limit' then meta_value else null end) as activation_limit,
+			     max(case when meta_key = '_activation_email' then meta_value else null end) as activation_email,
+			     max(case when meta_key = '_validity' then meta_value else null end) as validity, 
+			     max(case when meta_key = '_expire_date' then meta_value else null end) as expire_date,
+			     max(case when meta_key = '_order_date' then meta_value else null end) as order_date 
+			     from wp_postmeta pm group by 1
+			) m on m.post_id = p.id $query_where $query_orderby $query_limit";
+
+			$results = $wpdb->get_results( $request );
+		}
+
+		return $results;
 
 	}
 

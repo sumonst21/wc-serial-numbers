@@ -323,7 +323,7 @@ final class WCSerialNumbers {
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-tracker.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings-api.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings.php' );
-//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/metabox-functions.php' );
+		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/metabox-functions.php' );
 
 	}
 

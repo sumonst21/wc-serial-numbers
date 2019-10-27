@@ -5,6 +5,40 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * @since 1.1.0
+ * @return string
+ */
+function sn_get_serial_number_label(){
+	return apply_filters('wc_serial_numbers_serial_number_label', __('Serial Number', 'wc-serial-number'));
+}
+
+/**
+ * @since 1.1.0
+ * @return string
+ */
+function sn_get_activation_label(){
+	return apply_filters('wc_serial_numbers_activation_label', __('Activation', 'wc-serial-number'));
+}
+
+/**
+ * @since 1.1.0
+ * @return string
+ */
+function sn_get_validity_label(){
+	return apply_filters('wc_serial_numbers_validity_label', __('Validity', 'wc-serial-number'));
+}
+
+/**
+ * @since 1.1.0
+ * @return string
+ */
+function sn_get_expire_date_label(){
+	return apply_filters('wc_serial_numbers_expire_date_label', __('Expire Date', 'wc-serial-number'));
+}
+
+
+
+/**
  * get settings options
  *
  * @param        $key
