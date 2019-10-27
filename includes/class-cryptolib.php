@@ -89,7 +89,7 @@ class CryptoLib {
         $plainText = $this->encryptOrDecrypt('decrypt', $encryptedText, $key, $initVector);
 
         if (false === $plainText) {
-            throw new Exception('Unable to decrypt your encrypted string.');
+            return $encryptedText;
         }
 
         return $plainText;

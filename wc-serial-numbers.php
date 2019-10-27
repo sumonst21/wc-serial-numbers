@@ -67,25 +67,25 @@ final class WCSerialNumbers {
 	 */
 	protected $notices = array();
 
-	/**
-	 * @var WC_Serial_Numbers_Serial_Number
-	 */
-	public $serial_number;
-
-	/**
-	 * @var WC_Serial_Numbers_TMP_Serial_Number
-	 */
-	public $tmp_serial_number;
-
-	/**
-	 * @var WC_Serial_Numbers_Activation
-	 */
-	public $activation;
-
-	/**
-	 * @var CryptoLib
-	 */
-	public $encryption;
+//	/**
+//	 * @var WC_Serial_Numbers_Serial_Number
+//	 */
+//	public $serial_number;
+//
+//	/**
+//	 * @var WC_Serial_Numbers_TMP_Serial_Number
+//	 */
+//	public $tmp_serial_number;
+//
+//	/**
+//	 * @var WC_Serial_Numbers_Activation
+//	 */
+//	public $activation;
+//
+//	/**
+//	 * @var CryptoLib
+//	 */
+//	public $encryption;
 
 	/**
 	 * The single instance of the class.
@@ -129,15 +129,15 @@ final class WCSerialNumbers {
 		if ( $this->is_plugin_compatible() ) {
 			$this->define_constants();
 			$this->includes();
-			$this->serial_number     = new WC_Serial_Numbers_Serial_Number();
-			$this->tmp_serial_number = new WC_Serial_Numbers_TMP_Serial_Number();
-			$this->activation        = new WC_Serial_Numbers_Activation();
-			$this->encryption        = new CryptoLib();
+//			$this->serial_number     = new WC_Serial_Numbers_Serial_Number();
+//			$this->tmp_serial_number = new WC_Serial_Numbers_TMP_Serial_Number();
+//			$this->activation        = new WC_Serial_Numbers_Activation();
+//			$this->encryption        = new CryptoLib();
 
 			// API
-			$this->api_url  = add_query_arg( 'wc-api', 'serial-numbers-api', home_url( '/' ) );
-			$this->elements = new Ever_Elements();
-			do_action('wc_serial_numbers_loaded');
+			$this->api_url = add_query_arg( 'wc-api', 'serial-numbers-api', home_url( '/' ) );
+//			$this->elements = new Ever_Elements();
+			do_action( 'wc_serial_numbers_loaded' );
 		}
 	}
 
@@ -163,9 +163,9 @@ final class WCSerialNumbers {
 	/**
 	 * Determines if the plugin compatible.
 	 *
+	 * @return bool
 	 * @since 1.0.0
 	 *
-	 * @return bool
 	 */
 	protected function is_plugin_compatible() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
@@ -184,10 +184,11 @@ final class WCSerialNumbers {
 	/**
 	 * Adds an admin notice to be displayed.
 	 *
-	 * @since 1.0.0
-	 *
 	 * @param string $class the notice class
 	 * @param string $message the notice message body
+	 *
+	 * @since 1.0.0
+	 *
 	 */
 	public function add_notice( $class, $message ) {
 
@@ -217,7 +218,9 @@ final class WCSerialNumbers {
 		foreach ( $notices as $notice_key => $notice ) :
 			?>
 			<div class="notice notice-<?php echo sanitize_html_class( $notice['class'] ); ?>">
-				<p><?php echo wp_kses( $notice['message'], array( 'a' => array( 'href' => array() ), 'strong' => array() ) ); ?></p>
+				<p><?php echo wp_kses( $notice['message'], array( 'a'      => array( 'href' => array() ),
+				                                                  'strong' => array()
+					) ); ?></p>
 			</div>
 			<?php
 			update_option( sanitize_key( $this->plugin_name ), [] );
@@ -227,9 +230,9 @@ final class WCSerialNumbers {
 	/**
 	 * Initialize plugin for localization
 	 *
+	 * @return void
 	 * @since 1.0.0
 	 *
-	 * @return void
 	 */
 	public function localization_setup() {
 		load_plugin_textdomain( 'wc-serial-numbers', false, dirname( plugin_basename( __FILE__ ) ) . '/i18n/languages/' );
@@ -238,9 +241,9 @@ final class WCSerialNumbers {
 	/**
 	 * Determines if the pro version installed.
 	 *
+	 * @return bool
 	 * @since 1.0.0
 	 *
-	 * @return bool
 	 */
 	public function is_pro_installed() {
 		return is_plugin_active( 'wc-serial-numbers-pro/wc-serial-numbers-pro.php' ) == true;
@@ -249,7 +252,7 @@ final class WCSerialNumbers {
 	/**
 	 * Plugin action links
 	 *
-	 * @param  array $links
+	 * @param array $links
 	 *
 	 * @return array
 	 */
@@ -290,32 +293,38 @@ final class WCSerialNumbers {
 	 * Include required core files used in admin and on the frontend.
 	 */
 	public function includes() {
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-cryptolib.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-updates.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/core-functions.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/scripts-functions.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-crud.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-cryptolib.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-updates.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/core-functions.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/scripts-functions.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-crud.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-serial-number.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-tmp-serial-number.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-activation.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-elements.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-wc-handler.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-serial-numbers-api.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/hook-functions.php' );
+//
+//		//@since 1.1.1
 		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-serial-number.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-tmp-serial-number.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-activation.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-elements.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-wc-handler.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-serial-numbers-api.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/hook-functions.php' );
+		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/cpt-functions.php' );
+//
+//		//admin
+//		if ( ! $this->is_pro_installed() ) {
+//			require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-promotion.php' );
+//		}
+//
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-menu.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-form-handler.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-insight.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-tracker.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings-api.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings.php' );
+//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/metabox-functions.php' );
 
-		//admin
-		if ( ! $this->is_pro_installed() ) {
-			require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-promotion.php' );
-		}
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-menu.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-form-handler.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-insight.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-tracker.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings-api.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/metabox-functions.php' );
 	}
 
 	public function automatic_notification() {
@@ -344,8 +353,8 @@ final class WCSerialNumbers {
 	/**
 	 * Returns the plugin loader main instance.
 	 *
-	 * @since 1.0.0
 	 * @return \WCSerialNumbers
+	 * @since 1.0.0
 	 */
 	public static function instance() {
 
