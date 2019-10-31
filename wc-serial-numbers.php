@@ -294,7 +294,7 @@ final class WCSerialNumbers {
 	 */
 	public function includes() {
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-cryptolib.php' );
-//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
+		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-install.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-updates.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/core-functions.php' );

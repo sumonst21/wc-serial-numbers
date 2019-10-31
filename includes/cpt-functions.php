@@ -102,4 +102,4 @@ function serial_number_register_cpt() {
 
 }
 
-add_action( 'init', 'serial_number_register_cpt' );
+//add_action( 'init', 'serial_number_register_cpt' );
