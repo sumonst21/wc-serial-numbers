@@ -218,7 +218,7 @@ final class WCSerialNumbers {
 		foreach ( $notices as $notice_key => $notice ) :
 			?>
 			<div class="notice notice-<?php echo sanitize_html_class( $notice['class'] ); ?>">
-				<p><?php echo wp_kses( $notice['message'], array( 'a'      => array( 'href' => array() ),
+				<p><?php echo wp_kses( $notice['message'], array( 'a' => array( 'href' => array() ),
 				                                                  'strong' => array()
 					) ); ?></p>
 			</div>
@@ -310,14 +310,13 @@ final class WCSerialNumbers {
 //
 //		//@since 1.1.1
 		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-serial-number.php' );
-		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/cpt-functions.php' );
 //
 //		//admin
 //		if ( ! $this->is_pro_installed() ) {
 //			require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-promotion.php' );
 //		}
 //
-//		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-menu.php' );
+		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-menu.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-form-handler.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-insight.php' );
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-tracker.php' );
@@ -330,7 +329,6 @@ final class WCSerialNumbers {
 
 	public function automatic_notification() {
 		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/class-automatic-notification.php' );
-
 		new WCSN_Automatic_Notification();
 	}
 

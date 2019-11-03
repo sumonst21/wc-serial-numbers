@@ -8,7 +8,7 @@ class Serial_Number {
 	/**
 	 * @var array
 	 */
-	protected $props = array();
+	private $props = array();
 
 	/**
 	 * Serial_Number constructor.
@@ -76,29 +76,29 @@ class Serial_Number {
 		return null;
 	}
 
-	public function get_product(){
+	public function get_product() {
 
 	}
 
 
-	public function get_order(){
+	public function get_order() {
 
 	}
 
 
-	public function get_activation_limit(){
+	public function get_activation_limit() {
 
 	}
 
-	public function get_status(){
+	public function get_status() {
 
 	}
 
-	public function get_validity(){
+	public function get_validity() {
 
 	}
 
-	public function is_active(){
+	public function is_active() {
 
 	}
 
@@ -166,7 +166,7 @@ class Serial_Number {
 		$update = false;
 		$id     = null;
 		$data   = (array) apply_filters( 'serial_numbers_insert_serial', $args );
-
+		error_log( print_r( $data, true ) );
 		if ( isset( $args['id'] ) && ! empty( trim( $args['id'] ) ) ) {
 			$id             = (int) $args['id'];
 			$update         = true;
@@ -178,14 +178,14 @@ class Serial_Number {
 			$data = array_merge( $contact_before, $data );
 		}
 
-		$serial_key    = isset( $data['serial_key'] ) ? sanitize_text_field( $data['serial_key'] ) : null;
+		$serial_key       = isset( $data['serial_key'] ) ? sanitize_text_field( $data['serial_key'] ) : null;
 		$status           = ! empty( $data['status'] ) ? sanitize_key( $data['status'] ) : 'new';
 		$order_id         = isset( $data['order_id'] ) ? absint( $data['order_id'] ) : null;
 		$product_id       = isset( $data['product_id'] ) ? absint( $data['product_id'] ) : null;
 		$variation_id     = isset( $data['variation_id'] ) ? absint( $data['variation_id'] ) : null;
 		$activation_limit = ! empty( $data['activation_limit'] ) ? absint( $data['activation_limit'] ) : null;
 		$activation_email = isset( $data['activation_email'] ) ? sanitize_email( $data['activation_email'] ) : null;
-		$validity         = ! empty( $data['validity'] ) ? absint( $data['validity'] ) : '365';
+		$validity         = ! empty( $data['validity'] ) ? absint( $data['validity'] ) : null;
 		$expire_date      = isset( $data['expire_date'] ) ? sanitize_text_field( $data['expire_date'] ) : null;
 		$order_date       = isset( $data['order_date'] ) ? sanitize_text_field( $data['order_date'] ) : null;
 		$date_created     = ! empty( $data['date_created'] ) ? sanitize_text_field( $data['date_created'] ) : date( 'Y-m-d H:i:s' );
@@ -198,7 +198,7 @@ class Serial_Number {
 			return new WP_Error( 'missing_serial_number', __( 'Serial number is not defined', 'wc-serial-numbers' ) );
 		}
 
-		if ( empty( $order_id ) ) {
+		if ( empty( $product_id ) ) {
 			return new WP_Error( 'missing_product_id', __( 'Product id is missing', 'wc-serial-numbers' ) );
 		}
 
@@ -218,12 +218,12 @@ class Serial_Number {
 		$serial_arr = compact( $fields );
 		$serial_arr = wp_unslash( $serial_arr );
 		$where      = array( 'id' => $id );
-
+		error_log( print_r( $serial_arr, true ) );
 		if ( $update ) {
 			if ( false === $wpdb->update( $table, $serial_arr, $where ) ) {
 				return new WP_Error( 'db_update_error', __( 'Could not update serial number in the database', 'wc-serial-numbers' ), $wpdb->last_error );
 			}
-		}else{
+		} else {
 			if ( false === $wpdb->insert( $table, $serial_arr ) ) {
 				return new WP_Error( 'db_insert_error', __( 'Could not insert serial number the database', 'wc-serial-numbers' ), $wpdb->last_error );
 			}
@@ -265,16 +265,17 @@ class Serial_Number {
 
 
 		$default = array(
-			'include'    => array(),
-			'exclude'    => array(),
-			'status'     => 'all',
-			'order_id'   => array(),
-			'product_id' => array(),
-			'orderby'    => 'id',
-			'order'      => 'DESC',
-			'per_page'   => 20,
-			'page'       => 1,
-			'offset'     => 0,
+			'include'          => array(),
+			'exclude'          => array(),
+			'status'           => 'all',
+			'order_id'         => array(),
+			'product_id'       => array(),
+			'activation_limit' => '',
+			'orderby'          => 'id',
+			'order'            => 'DESC',
+			'per_page'         => 20,
+			'page'             => 1,
+			'offset'           => 0,
 		);
 		//sn_serial
 		$args = wp_parse_args( $args, $default );
@@ -296,19 +297,24 @@ class Serial_Number {
 		//product_id
 		if ( ! empty( $args['product_id'] ) ) {
 			$product_id  = implode( ',', wp_parse_id_list( $args['product_id'] ) );
-			$query_where .= " AND product_id NOT IN ( $product_id ) ";
-		}
-
-		//variation_id
-		if ( ! empty( $args['variation_id'] ) ) {
-			$variation_id = implode( ',', wp_parse_id_list( $args['variation_id'] ) );
-			$query_where  .= " AND variation_id NOT IN ( $variation_id ) ";
+			$query_where .= " AND product_id IN ( $product_id ) ";
 		}
 
 		//order_id
 		if ( ! empty( $args['order_id'] ) ) {
 			$order_id    = implode( ',', wp_parse_id_list( $args['order_id'] ) );
-			$query_where .= " AND order_id NOT IN ( $order_id ) ";
+			$query_where .= " AND order_id IN ( $order_id ) ";
+		}
+
+		//activation_limit
+		if ( ! empty( $args['activation_limit'] ) ) {
+			$activation_limit = implode( ',', wp_parse_id_list( $args['activation_limit'] ) );
+			$query_where      .= " AND activation_limit IN ( $activation_limit ) ";
+		}
+
+		//status
+		if ( ! empty( $args['status'] ) && 'all' !== $args['status'] ) {
+			$query_where .= $wpdb->prepare( " AND status=%s", sanitize_key( $args['status'] ) );
 		}
 
 		//ordering
@@ -329,10 +335,14 @@ class Serial_Number {
 		if ( $count ) {
 			return $wpdb->get_var( "SELECT count(id) from {$table} $query_where $query_orderby $query_limit" );
 		}
+		error_log("SELECT * from {$table} $query_where $query_orderby $query_limit");
+		$items  = $wpdb->get_results( "SELECT * from {$table} $query_where $query_orderby $query_limit" );
+		$result = [];
+		foreach ( $items as $item ) {
+			$result[] = new Serial_Number( $item );
+		}
 
-		$items = $wpdb->get_results( "SELECT count(id) from {$table} $query_where $query_orderby $query_limit" );
-
-		return array_map( __CLASS__, $items );
+		return $result;
 	}
 
 

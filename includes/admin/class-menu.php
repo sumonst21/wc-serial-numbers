@@ -18,9 +18,18 @@ class WC_Serial_Numbers_Menu {
 	 * Adds page to admin menu
 	 */
 	function admin_menu() {
-		add_menu_page( __( 'WC Serial Numbers', 'wc-serial-numbers' ), __( 'Serial Numbers', 'wc-serial-numbers' ), 'manage_woocommerce', 'wc-serial-numbers', array( $this, 'serial_numbers_page' ), 'dashicons-admin-network', '55.9' );
-		add_submenu_page( 'wc-serial-numbers', __( 'Serial Numbers', 'wc-serial-numbers' ), __( 'Serial Numbers', 'wc-serial-numbers' ), 'manage_woocommerce', 'wc-serial-numbers', array( $this, 'serial_numbers_page' ) );
-		add_submenu_page( 'wc-serial-numbers', __( 'API Doc', 'wc-serial-numbers' ), __( 'API Doc', 'wc-serial-numbers' ), 'manage_woocommerce', 'wcsn-api-doc', array( $this, 'api_doc_page' ) );
+		add_menu_page( __( 'WC Serial Numbers', 'wc-serial-numbers' ), __( 'Serial Numbers', 'wc-serial-numbers' ), 'manage_woocommerce', 'wc-serial-numbers', array(
+			$this,
+			'serial_numbers_page'
+		), 'dashicons-admin-network', '55.9' );
+		add_submenu_page( 'wc-serial-numbers', __( 'Serial Numbers', 'wc-serial-numbers' ), __( 'Serial Numbers', 'wc-serial-numbers' ), 'manage_woocommerce', 'wc-serial-numbers', array(
+			$this,
+			'serial_numbers_page'
+		) );
+		add_submenu_page( 'wc-serial-numbers', __( 'API Doc', 'wc-serial-numbers' ), __( 'API Doc', 'wc-serial-numbers' ), 'manage_woocommerce', 'wcsn-api-doc', array(
+			$this,
+			'api_doc_page'
+		) );
 	}
 
 	/**
@@ -67,21 +76,6 @@ class WC_Serial_Numbers_Menu {
 			'href'   => admin_url( 'admin.php?page=wc-serial-numbers&action_type=add_serial_number' ),
 			'parent' => 'wsn-wc-serial-numbers',
 		) );
-//
-//		$wp_admin_bar->add_menu( array(
-//			'id'     => 'wsn-generate-serial-number',
-//			'title'  => __( 'Generate Serial Number', 'wc-serial-numbers' ),
-//			'href'   => WPWSN_GENERATE_SERIAL_PAGE,
-//			'parent' => 'wsn-wc-serial-numbers',
-//		) );
-//
-//		$wp_admin_bar->add_menu( array(
-//			'id'     => 'wsn-settings',
-//			'title'  => __( 'Settings', 'wc-serial-numbers' ),
-//			'href'   => WPWSN_SETTINGS_PAGE,
-//			'parent' => 'wsn-wc-serial-numbers',
-//		) );
-
 	}
 
 	public function api_doc_page() {
