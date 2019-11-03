@@ -325,6 +325,7 @@ final class WCSerialNumbers {
 //		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/class-settings.php' );
 		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/admin/metabox-functions.php' );
 
+		require_once( WC_SERIAL_NUMBERS_INCLUDES . '/cli/commands.php' );
 	}
 
 	public function automatic_notification() {
