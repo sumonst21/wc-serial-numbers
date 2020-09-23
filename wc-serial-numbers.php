@@ -218,6 +218,8 @@ class WC_Serial_Numbers {
 
 		add_action( 'woocommerce_loaded', array( $this, 'init_plugin' ) );
 		add_action( 'admin_notices', array( $this, 'wc_missing_notice' ) );
+
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 	}
 
 	/**
@@ -309,6 +311,10 @@ class WC_Serial_Numbers {
 	 */
 	public function on_plugins_loaded() {
 		do_action( 'wc_serial_numbers__loaded' );
+	}
+
+	public function frontend_scripts() {
+		wp_enqueue_script( 'wc-serial-numbers', wc_serial_numbers()->plugin_url() . '/assets/js/wc-serial-numbers.js', [ 'jquery', 'wp-util', 'select2', ], time(), true );
 	}
 
 }

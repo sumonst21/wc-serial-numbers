@@ -24,9 +24,6 @@ class WC_Serial_Numbers_Handler {
 		add_action( 'woocommerce_order_status_failed', array( __CLASS__, 'revoke_serial_numbers' ) );
 		add_action( 'woocommerce_order_partially_refunded', array( __CLASS__, 'revoke_serial_numbers' ), 10, 2 );
 
-		//add_action( 'woocommerce_checkout_create_order', array( __CLASS__, 'save_order_metaboxes' ), 20, 2 );
-		//add_action( 'woocommerce_checkout_update_order_meta', array( __CLASS__, 'save_order_metaboxes' ), 20, 2 );
-
 		//
 		add_action( 'woocommerce_email_after_order_table', array( __CLASS__, 'order_print_items' ) );
 		add_action( 'woocommerce_order_details_after_order_table', array( __CLASS__, 'order_print_items' ), 10 );
@@ -166,24 +163,6 @@ class WC_Serial_Numbers_Handler {
 			wc_serial_numbers_get_order_table( $order );
 		}
 	}
-
-	public static function save_order_metaboxes( $order_id, $data ) {
-		//error_log( print_r( $order, true ) );
-		$associated_serial_numbers = array();
-		$serial_numbers            = WC_Serial_Numbers_Query::init()->from( 'serial_numbers' )->where( 'order_id', $order_id )->get();
-
-		if ( empty( $serial_numbers ) ) {
-			$associated_serial_numbers[] = '';
-		}
-
-		foreach ( $serial_numbers as $serial_number ) {
-			$associated_serial_numbers[] = wc_serial_numbers_decrypt_key( $serial_number );
-		}
-		error_log( print_r( $associated_serial_numbers, true ) );
-		update_post_meta( $order_id, 'order_serial_numbers', implode( ',', $associated_serial_numbers ) );
-	}
-
-
 }
 
 WC_Serial_Numbers_Handler::init();

@@ -8,14 +8,12 @@ class WC_Serial_Numbers_Admin_MetaBoxes {
 	 */
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'register_metaboxes' ) );
-		add_action( 'woocommerce_checkout_update_order_meta', array( __CLASS__, 'save_order_metaboxes' ) );
 		add_filter( 'woocommerce_product_data_tabs', array( __CLASS__, 'product_data_tab' ) );
 		add_action( 'woocommerce_product_data_panels', array( __CLASS__, 'product_write_panel' ) );
 		add_filter( 'woocommerce_process_product_meta', array( __CLASS__, 'product_save_data' ) );
 		add_action( 'woocommerce_product_after_variable_attributes', array( __CLASS__, 'variable_product_content' ), 10, 3 );
 		//add_action( 'woocommerce_after_order_itemmeta', array( $this, 'order_itemmeta' ), 10, 3 );
 
-//
 	}
 
 	/**
@@ -25,7 +23,6 @@ class WC_Serial_Numbers_Admin_MetaBoxes {
 	 */
 	public static function register_metaboxes() {
 		add_meta_box( 'order-serial-numbers', __( 'Serial Numbers', 'wc-serial-numbers' ), array( __CLASS__, 'order_metabox' ), 'shop_order', 'advanced', 'high' );
-		//add_meta_box( 'order-linked_serial-numbers', __( 'Serial Numbers For Export', 'wc-serial-numbers' ), array( __CLASS__, 'order_linked_serial_metabox' ), 'shop_order', 'side', 'default' );
 	}
 
 	/**
@@ -342,78 +339,6 @@ class WC_Serial_Numbers_Admin_MetaBoxes {
 
 		return true;
 	}
-
-	/**
-	 * Render order linked serial numbers metabox
-	 */
-	public static function order_linked_serial_numbers( $order ) {
-//		if ( ! is_object( $post ) || ! isset( $post->ID ) ) {
-//			return false;
-//		}
-//		$order = wc_get_order( $post->ID );
-
-		// bail for no order
-		if ( ! $order ) {
-			return false;
-		}
-
-		if ( 'completed' !== $order->get_status( 'edit' ) ) {
-			echo sprintf( '<p>%s</p>', __( 'Order status is not completed.', 'wc-serial-numbers' ) );
-
-			return false;
-		}
-
-		$serial_numbers = WC_Serial_Numbers_Query::init()->from( 'serial_numbers' )->where( 'order_id', intval( $order->get_id() ) )->get();
-
-		if ( empty( $serial_numbers ) ) {
-			echo sprintf( '<p>%s</p>', apply_filters( 'wc_serial_numbers_pending_notice', __( 'Order waiting for assigning serial numbers.', 'wc-serial-numbers' ) ) );
-
-			return false;
-		}
-		$associated_serial_numbers = array();
-//
-		foreach ( $serial_numbers as $serial_number ) {
-			$associated_serial_numbers[] = wc_serial_numbers_decrypt_key( $serial_number->serial_key );
-		}
-		//error_log( print_r( $associated_serial_numbers, true ) );
-
-		$linked_serial_numbers = ! empty( get_post_meta( $order->get_id(), 'order_serial_numbers', true ) ) ? get_post_meta( $order->get_id(), 'order_serial_numbers', true ) : implode( ',', $associated_serial_numbers );
-
-		woocommerce_wp_text_input( array(
-			'id'            => 'order_serial_numbers',
-			'label'         => 'Associated Serial Numbers:',
-			'value'         => $linked_serial_numbers,
-			'wrapper_class' => 'form-field-wide'
-		) );
-
-
-	}
-
-	public static function order_save_linked_serial_numbers( $order_id ) {
-		$order_meta     = $_POST['order_serial_numbers'];
-		$serial_numbers = WC_Serial_Numbers_Query::init()->from( 'serial_numbers' )->where( 'order_id', intval( $order_id ) )->get();
-
-		if ( empty( $serial_numbers ) ) {
-			echo sprintf( '<p>%s</p>', apply_filters( 'wc_serial_numbers_pending_notice', __( 'Order waiting for assigning serial numbers.', 'wc-serial-numbers' ) ) );
-
-			return false;
-		}
-		$associated_serial_numbers = array();
-		foreach ( $serial_numbers as $serial_number ) {
-			$associated_serial_numbers[] = wc_serial_numbers_decrypt_key( $serial_number->serial_key );
-		}
-
-		$meta_values = ! empty( $order_meta ) ? $order_meta : implode( ',', $associated_serial_numbers );
-
-		update_post_meta( $order_id, 'order_serial_numbers', $meta_values );
-	}
-
-
-
-
-
-
-
 
 }
 
