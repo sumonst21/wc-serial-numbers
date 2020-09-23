@@ -235,6 +235,14 @@ function wc_serial_numbers_order_connect_serial_numbers( $order_id ) {
 				) );
 			$total_added += $updated ? 1 : 0;
 		}
+
+//		$assocaited_serial_keys = array();
+//		foreach ( $serials as $serial ) {
+//			$assocaited_serial_keys[] = wc_serial_numbers_decrypt_key( $serial );
+//		}
+//		$order->update_meta_data( 'order_serial_numbers', implode( ',', $assocaited_serial_keys ) );
+
+
 	}
 	do_action( 'wc_serial_numbers_order_connect_serial_numbers', $order_id, $total_added );
 
@@ -278,6 +286,9 @@ function wc_serial_numbers_order_disconnect_serial_numbers( $order_id ) {
 	do_action( 'wc_serial_numbers_pre_order_disconnect_serial_numbers', $order_id );
 
 	$total_disconnected = WC_Serial_Numbers_Query::init()->table( 'serial_numbers' )->where( 'order_id', $order_id )->update( $data );
+
+	//$associate_serial_keys = get_post_meta( $order_id, 'order_serial_numbers', false );
+	//$order->update_meta_data( 'order_serial_numbers', '' );
 
 	do_action( 'wc_serial_numbers_order_disconnect_serial_numbers', $order_id, $total_disconnected );
 
@@ -373,7 +384,7 @@ function wc_serial_numbers_insert_serial_number( $args ) {
 //				$valid_product = true;
 //				break;
 //			}
-			$product        = $item->get_product();
+			$product = $item->get_product();
 			if ( $product->get_id() === $product_id ) {
 				$valid_product = true;
 				break;
@@ -648,7 +659,7 @@ function wc_serial_numbers_get_order_table_columns() {
  */
 function wc_serial_numbers_get_stock_quantity( $product_id ) {
 	$source = get_post_meta( $product_id, '_serial_key_source', true );
-	if ( 'custom_source' == get_post_meta( $product_id, '_serial_key_source', true ) || empty($source) ) {
+	if ( 'custom_source' == get_post_meta( $product_id, '_serial_key_source', true ) || empty( $source ) ) {
 		return WC_Serial_Numbers_Query::init()->from( 'serial_numbers' )->where( [
 			'product_id' => $product_id,
 			'status'     => 'available'
